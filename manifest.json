@@ -1,0 +1,27 @@
+{
+    "name": "How Many Time I Waste on Bilibili",
+    "manifest_version": 2,
+    "version": "1.0",
+    "description": "How many time I waste on Bilibili",
+    "icons": {
+        "16": "icon.png"
+    },
+    "browser_action": {
+        "default_icon": "icon.png",
+        "default_title": "统计",
+        "default_popup": "pop.html"
+    },
+    "background": {
+        "scripts": ["background.js"]
+    },
+    "content_scripts": [
+        {
+            "js": ["content.js"],
+            "matches": ["http://*.bilibili.com/*"],
+            "run_at": "document_start"
+        }
+    ],
+    "permissions": [
+        "tabs"
+    ]
+}
