@@ -43,6 +43,12 @@
         let elHistory = document.querySelector('#history');
         elHistory.style = 'dislay: none';
         elHistory.innerHTML = list.map(function (item){
+            let date = new Date(item.date);
+            return {
+                date: date.getFullYear() + '/' + (date.getMonth() + 1) + '/' + date.getDate(),
+                time: item.time
+            };
+        }).map(function (item){
             return JSON.stringify(item);
         }).join(',');
         elHistory.style = 'dislay: block';
