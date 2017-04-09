@@ -1,6 +1,7 @@
 (function() {
     let counter = 0;
     let pageList  = [];
+    let lastMsgTime = null;
     let delay = false;
     let history = {
         _list: [],
@@ -43,20 +44,18 @@
         }
     });
 
-    // 12 点的时候清理数据
-    setInterval(function () {
-        let current = new Date();
-        if (current.getHours() + current.getMinutes() == 0) {
-            history.list = counter;
-            counter = 0;
-            pageList = [];
-        }
-    }, 40000);
-
     // 计数
     function countTime() {
         if (delay) return;
         counter += 1;
+        let current = new Date();
+        if (lastMsgTime && 
+            Math.floor(lastMsgTime.getTime() / 3600000 / 24)
+            != Math.floor(current.getTime() / 3600000 / 24)) {
+            history.list = counter;
+            counter = 0;
+            pageList = [];
+        }
         // 缓冲一下
         delay = true;
         setTimeout(function() {
