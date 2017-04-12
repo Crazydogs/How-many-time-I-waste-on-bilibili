@@ -18,39 +18,44 @@
         renderUrlList(res.url);
     }
 
-    function renderTime(time) {
+    function renderTime(time:number) {
         let elH = document.querySelector('#hours');
         let elM = document.querySelector('#minute');
         let elS = document.querySelector('#second');
-        elH.innerHTML = Math.floor(time / 3600);
+        elH.innerHTML = String(Math.floor(time / 3600));
         time = time % 3600;
-        elM.innerHTML = Math.floor(time / 60);
+        elM.innerHTML = String(Math.floor(time / 60));
         time = time % 60;
-        elS.innerHTML = time;
+        elS.innerHTML = String(time);
     }
-    function renderUrlList(list) {
-        let elF = document.querySelector('#frome');
-        elF.style = 'dislay: none';
+    function renderUrlList(list: string[]): void {
+        let elF = document.getElementById('frome');
+        elF.style.display = 'none';
         elF.innerHTML = '';
         list.map(function(item) {
             let elLi = document.createElement('li');
             elLi.innerText = item;
             elF.appendChild(elLi);
         });
-        elF.style = 'dislay: block';
+        elF.style.display = 'block';
     }
-    function renderHistory(list) {
-        let elHistory = document.querySelector('#history');
-        elHistory.style = 'dislay: none';
+    function renderHistory(list): void {
+        let elHistory = document.getElementById('history');
+        elHistory.style.display = 'none';
         elHistory.innerHTML = list.map(function (item){
             let date = new Date(item.date);
             return {
-                date: date.getFullYear() + '/' + (date.getMonth() + 1) + '/' + date.getDate(),
+                date: date.getFullYear() + '/'
+                    + (date.getMonth() + 1) + '/'
+                    + date.getDate() + ' '
+                    + date.getHours() + ':'
+                    + date.getMinutes() + ':'
+                    + date.getSeconds(),
                 time: item.time
             };
         }).map(function (item){
             return JSON.stringify(item);
-        }).join(',');
-        elHistory.style = 'dislay: block';
+        }).join('</br>');
+        elHistory.style.display = 'block';
     }
 })();

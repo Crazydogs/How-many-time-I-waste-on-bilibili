@@ -1,0 +1,30 @@
+{
+  "name": "chrome_extend",
+  "version": "1.0.0",
+  "description": "统计一下我在 BiliBili 虚度多少光阴",
+  "main": "webpack.config.js",
+  "dependencies": {
+    "@types/chrome": "0.0.46",
+    "awesome-typescript-loader": "^3.1.2",
+    "source-map-loader": "^0.2.1",
+    "typescript": "^2.2.2"
+  },
+  "devDependencies": {
+    "awesome-typescript-loader": "^3.1.2",
+    "source-map-loader": "^0.2.1",
+    "typescript": "^2.2.2"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Crazydogs/How-many-time-I-waste-on-bilibili.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Crazydogs/How-many-time-I-waste-on-bilibili/issues"
+  },
+  "homepage": "https://github.com/Crazydogs/How-many-time-I-waste-on-bilibili#readme"
+}
