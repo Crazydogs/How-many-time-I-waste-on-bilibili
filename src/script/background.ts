@@ -3,10 +3,13 @@ import {TimeHistory} from "./history";
 (function() {
     /** 一天的毫秒数 */
     const timePerDay = 86400000;
-    /** 记录页面列表 */
-    let pageList:string[]  = [];
     /** 多个时段的历史记录，封装了 localStorage */
-    let history =  new TimeHistory();
+    const history =  new TimeHistory();
+
+    /** 当天访问页面列表 */
+    let pageList:string[]  = [];
+    /** 当天累计已稳定时间 */
+    let totalTime: number = 0;
 
     interface PageConnection {
         /** 页面开始时间 */
@@ -18,21 +21,10 @@ import {TimeHistory} from "./history";
     }
     /** 页面连接列表 */
     let connectionList: {[portname: string]: PageConnection} = {};
-    /** 最后记入的时间 */
-    let lastCountTime: number = 0;
-    /** 总计时间 */
-    let totalTime: number = 0;
 
-    chrome.runtime.onMessage.addListener(function msgListener(req, sender, res) {
-        if (req.type == 'get time') {
-            res({
-                time: totalTime / 1000,
-                url: pageList
-            });
-        } else if (req.type == 'get history') {
-            res(history.getList());
-        }
-    });
+    /** 开始计时时间 */
+    let startTime: number = 0;
+
 
     // 处理页面链接
     chrome.runtime.onConnect.addListener((externalPort) => {
@@ -42,47 +34,61 @@ import {TimeHistory} from "./history";
             url: externalPort.sender.tab.url,
             title: externalPort.sender.tab.title
         };
-        savePage(externalPort.sender.tab.url);
-        externalPort.onMessage.addListener((msg: any, port) => {
-            let startTime = msg.startTime > lastCountTime ? msg.startTime : lastCountTime;
-            if (!needClear(msg.time)) {
-                // 通常情况
-                totalTime += msg.time - startTime;
-                lastCountTime = msg.time;
-            } else {
-                // 跨界
-                let times = splitTime(startTime, msg.time);
-            }
-        });
+        // 保存访问记录
+        if (pageList.indexOf(externalPort.sender.tab.url) == -1) {
+            pageList.push(externalPort.sender.tab.url);
+        }
+        // 设定本段计时开始时间
+        if (!startTime) {
+            startTime = Number(externalPort.name);
+        }
+
         // 断开连接
         externalPort.onDisconnect.addListener((port) => {
             delete connectionList[port.sender.tab.id];
+            if (!Object.keys(connectionList).length) {
+                // 没有活动的连接了
+                totalTime += new Date().getTime() - startTime;
+                startTime = 0;
+            }
         });
     });
-    /** 保存访问页面 */
-    function savePage(url: string): void {
-        if (pageList.indexOf(url) == -1) {
-            pageList.push(url);
+
+    /** 上次检查的时间 */
+    let lastCheckTime = new Date().getTime();
+    // 时间跨界检查
+    setInterval(() => {
+        let now = new Date().getTime();
+        if (
+            Math.floor(lastCheckTime / timePerDay) !=
+            Math.floor(now / timePerDay)
+        ) {
+            totalTime = startTime ? totalTime + now - startTime : totalTime;
+            startTime = startTime ? now : 0;
+            pageList = [];
+            history.addItem({
+                startTime: lastCheckTime - lastCheckTime % timePerDay,
+                endTime: now,
+                duration: totalTime
+            });
+            totalTime = 0;
         }
-    }
-    /** 将一个时间段根据粒度切分成多段 */
-    function splitTime(startTime: number, endTime: number): number[] {
-        let duration = endTime - startTime;
-        let dayStart = Math.floor(startTime / timePerDay);
-        let dayEnd = Math.floor(endTime / timePerDay);
-        if (dayStart === dayEnd) {
-            return [duration];
+        lastCheckTime = now;
+    }, 10000);
+
+    // 页面输出
+    chrome.runtime.onMessage.addListener(function msgListener(req, sender, res) {
+        if (req.type == 'get time') {
+            let exTime = startTime ? new Date().getTime() - startTime : 0;
+            // 输出当天累计时间
+            res({
+                // 累积时间加当前还活跃的连接时间
+                time: (totalTime + exTime) / 1000,
+                url: pageList,
+            });
+        } else if (req.type == 'get history') {
+            // 输出历史数据
+            res(history.getList());
         }
-        let firstDayTime = timePerDay - (startTime % timePerDay);
-        let lastDayTime = endTime % timePerDay;
-        return [firstDayTime].concat(
-            Array(dayEnd - dayStart - 1).map(() => {
-                return timePerDay;
-            }),
-            [lastDayTime]);
-    }
-    /** 是否须要重新开始计数 */
-    function needClear(endTime: number): boolean {
-        return Math.floor(endTime / timePerDay) != Math.floor(lastCountTime / timePerDay);
-    }
+    });
 })();

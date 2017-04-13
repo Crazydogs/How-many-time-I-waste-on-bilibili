@@ -43,7 +43,7 @@
         let elHistory = document.getElementById('history');
         elHistory.style.display = 'none';
         elHistory.innerHTML = list.map(function (item){
-            let date = new Date(item.date);
+            let date = new Date(item.startTime);
             return {
                 date: date.getFullYear() + '/'
                     + (date.getMonth() + 1) + '/'
@@ -51,7 +51,7 @@
                     + date.getHours() + ':'
                     + date.getMinutes() + ':'
                     + date.getSeconds(),
-                time: item.time
+                time: item.duration
             };
         }).map(function (item){
             return JSON.stringify(item);
